@@ -37,7 +37,24 @@ exports.handler = function(event, context) {
     }
 
     const policy = new AuthPolicy(claims.sub, awsAccountId, apiOptions);
-    policy.allowAllMethods();
+
+
+    /*
+      example scope based authorization
+
+      to allow full access:
+        policy.allowAllMethods()
+     */
+    if (claims.hasScopes('api:read')) {
+      policy.allowMethod(AuthPolicy.HttpVerb.GET, "*");
+    } else if (claims.hasScopes('api:write')) {
+      policy.allowMethod(AuthPolicy.HttpVerb.POST, "*");
+      policy.allowMethod(AuthPolicy.HttpVerb.PUT, "*");
+      policy.allowMethod(AuthPolicy.HttpVerb.PATCH, "*");
+      policy.allowMethod(AuthPolicy.HttpVerb.DELETE, "*");
+    }
+    policy.allowMethod(AuthPolicy.HttpVerb.HEAD, "*");
+    policy.allowMethod(AuthPolicy.HttpVerb.OPTIONS, "*");
 
     return context.succeed(policy.build());
   });

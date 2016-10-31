@@ -1,7 +1,7 @@
 {
   "name": "lambda-oauth2-jwt-bearer-authorizer",
   "version": "0.1.0",
-  "description": "AWS API Gateway OAuth2 JWT Bearer Custom Authorizer",
+  "description": "OAuth2 Bearer JSON Web Token (JWT) Custom Authorizer for AWS API Gateway",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/lambda-local --timeout 300 -l lib/index.js -h handler -e test/event.json",
@@ -16,7 +16,9 @@
     "jwt",
     "lambda",
     "aws",
-    "okta"
+    "okta",
+    "api-gateway",
+    "oidc"
   ],
   "author": {
     "name": "Karl McGuinness",
