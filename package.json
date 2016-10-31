@@ -1,0 +1,42 @@
+{
+  "name": "lambda-oauth2-jwt-bearer-authorizer",
+  "version": "0.1.0",
+  "description": "AWS API Gateway OAuth2 JWT Bearer Custom Authorizer",
+  "main": "index.js",
+  "scripts": {
+    "test": "./node_modules/.bin/lambda-local --timeout 300 -l lib/index.js -h handler -e test/event.json",
+    "zip": "rm -f dist/lambda-oauth2-jwt-bearer-authorizer.zip ; zip dist/lambda-oauth2-jwt-bearer-authorizer.zip -r *.js *.json .env node_modules/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git"
+  },
+  "keywords": [
+    "oauth2",
+    "jwt",
+    "lambda",
+    "aws",
+    "okta"
+  ],
+  "author": {
+    "name": "Karl McGuinness",
+    "email": "dev@karlmcguinness.com"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git/issues"
+  },
+  "homepage": "https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git#readme",
+  "dependencies": {
+    "dotenv": "^2.0.0",
+    "node-oauth2-bearer-jwt-handler": "https://github.com/mcguinness/node-oauth2-jwt-bearer-token.git"
+  },
+  "devDependencies": {
+    "lambda-local": "^1.1.0",
+    "grunt": "^1.0.1",
+    "grunt-aws": "^0.6.1",
+    "grunt-aws-lambda": "^0.13.0",
+    "grunt-env": "^0.4.4",
+    "load-grunt-tasks": "^3.4.0"
+  }
+}
