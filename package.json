@@ -1,15 +1,15 @@
 {
-  "name": "lambda-oauth2-jwt-bearer-authorizer",
+  "name": "lambda-oauth2-jwt-authorizer",
   "version": "0.1.0",
   "description": "OAuth2 Bearer JSON Web Token (JWT) Custom Authorizer for AWS API Gateway",
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/lambda-local --timeout 300 -l lib/index.js -h handler -e test/event.json",
-    "zip": "rm -f dist/lambda-oauth2-jwt-bearer-authorizer.zip ; zip dist/lambda-oauth2-jwt-bearer-authorizer.zip -r *.js *.json .env node_modules/"
+    "zip": "rm -f dist/lambda-oauth2-jwt-authorizer.zip ; zip dist/lambda-oauth2-jwt-authorizer.zip -r *.js *.json .env node_modules/"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git"
+    "url": "git+https://github.com/mcguinness/node-lambda-oauth2-jwt-authorizer.git"
   },
   "keywords": [
     "oauth2",
@@ -26,9 +26,9 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git/issues"
+    "url": "https://github.com/mcguinness/node-lambda-oauth2-jwt-authorizer.git/issues"
   },
-  "homepage": "https://github.com/mcguinness/node-lambda-oauth2-jwt-bearer.git#readme",
+  "homepage": "https://github.com/mcguinness/node-lambda-oauth2-jwt-authorizer.git#readme",
   "dependencies": {
     "dotenv": "^2.0.0",
     "node-oauth2-bearer-jwt-handler": "https://github.com/mcguinness/node-oauth2-jwt-bearer-token.git"

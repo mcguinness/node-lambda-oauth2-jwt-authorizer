@@ -1,7 +1,7 @@
 
 # OAuth 2.0 Bearer JWT Authorizer for AWS API Gateway
 
-The oauth2-jwt-bearer-authorizer is sample implementation of a custom authorizer for AWS API Gateway that works with a JWT `id_token` or `access_token` issued by an OAuth 2.0 Authorization Server.  It can be used to secure access to API managed by AWS API Gateway.
+The lambda-oauth2-jwt-authorizer is sample implementation of a custom authorizer for AWS API Gateway that works with a JWT bearer token (`id_token` or `access_token`) issued by an OAuth 2.0 Authorization Server.  It can be used to secure access to API managed by AWS API Gateway.
 
 ## Configuration
 
@@ -32,17 +32,17 @@ You can obtain the JWKS for your token issuer by fetching the `jwks_uri` publish
 
 ### Create bundle
 
-You can create the bundle using `npm zip`. This creates a oauth2-jwt-bearer-authorizer.zip deployment package with all the source, configuration and node modules AWS Lambda needs.
+You can create the bundle using `npm zip`. This creates a oauth2-jwt-authorizer.zip deployment package with all the source, configuration and node modules AWS Lambda needs.
 
 ### Create Lambda function
 
 From the AWS console https://console.aws.amazon.com/lambda/home#/create?step=2
 
-* Name : oauth2-jwt-bearer-authorizer
+* Name : oauth2-jwt-authorizer
 * Description: OAuth2 Bearer JWT authorizer for API Gateway
 * Runtime: Node.js 4.3
 * Code entry type: Upload a .ZIP file
-* Upload : < select lambda-oauth2-jwt-bearer-authorizer.zip we created in the previous step >
+* Upload : < select lambda-oauth2-jwt-authorizer.zip we created in the previous step >
 * Handler : index.handler
 * Role :  Basic
 * Memory (MB) : 128
@@ -59,7 +59,7 @@ Open your API, or Create a new one.
 
 In the left panel, under your API name, click on **Custom Authorizers**. Click on **Create**
 
-* Name : oauth2-jwt-bearer-authorizer
+* Name : oauth2-jwt-authorizer
 * Lambda region : < from previous step >
 * Execution role : < the ARN of the Role we created in the previous step >
 * Identity token source : method.request.header.Authorization
@@ -103,7 +103,7 @@ Under the Resource tree, select one of your Methods (POST, GET etc.)
 
 Select **Method Request**. Under **Authorization Settings** change:
 
-* Authorizer : oauth2-jwt-bearer-authorizer
+* Authorizer : oauth2-jwt-authorizer
 
 Make sure that:
 
