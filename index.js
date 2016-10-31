@@ -17,7 +17,7 @@ exports.handler = function(event, context) {
   }, function(err, claims) {
     if (err) {
       console.log('Failed to validate bearer token', err);
-      context.fail('Unauthorized');
+      return context.fail('Unauthorized');
     }
 
     console.log('request principal: ' + claims);
