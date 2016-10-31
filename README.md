@@ -5,6 +5,10 @@ The oauth2-jwt-bearer-authorizer is sample implementation of a custom authorizer
 
 ## Configuration
 
+### Packages
+
+Run `npm install` to download all the dependent modules. This is a prerequisite for deployment as AWS Lambda requires these files to be included in the bundle.
+
 ### .env
 
 Specifies the required JWT validation parameters for the API Gateway custom authorizer
@@ -35,7 +39,7 @@ You can create the bundle using `npm zip`. This creates a oauth2-jwt-bearer-auth
 From the AWS console https://console.aws.amazon.com/lambda/home#/create?step=2
 
 * Name : oauth2-jwt-bearer-authorizer
-* Description: Auth0 authorizer for API Gateway
+* Description: OAuth2 Bearer JWT authorizer for API Gateway
 * Runtime: Node.js 4.3
 * Code entry type: Upload a .ZIP file
 * Upload : < select lambda-oauth2-jwt-bearer-authorizer.zip we created in the previous step >
