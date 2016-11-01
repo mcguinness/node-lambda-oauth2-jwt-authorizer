@@ -14,7 +14,7 @@ module.exports = function(grunt) {
   grunt.initConfig({
     lambda_invoke: {
       default: {
-        package: 'lambda-oauth2-jwt-authorizer',
+        package: 'oauth2-jwt-authorizer',
         options: {
           file_name: 'index.js',
           handler: 'handler',
@@ -24,18 +24,18 @@ module.exports = function(grunt) {
     },
     lambda_deploy: {
       default: {
-        package: 'lambda-oauth2-jwt-authorizer',
+        package: 'oauth2-jwt-authorizer',
         options: {
           file_name: 'index.js',
           handler: 'handler',
         },
         arn: 'arn:aws:lambda:' + grunt.option('region') + ':' + grunt.option('account-id') +
-          ':function:lambda-oauth2-jwt-authorizer',
+          ':function:oauth2-jwt-authorizer',
       },
     },
     lambda_package: {
       default: {
-        package: 'lambda-oauth2-jwt-authorizer',
+        package: 'oauth2-jwt-authorizer',
       },
     },
     env: {
