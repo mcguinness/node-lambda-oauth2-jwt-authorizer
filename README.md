@@ -1,77 +1,113 @@
 
 # OAuth 2.0 Bearer JWT Authorizer for AWS API Gateway
 
-The lambda-oauth2-jwt-authorizer is sample implementation of a custom authorizer for AWS API Gateway that works with a JWT bearer token (`id_token` or `access_token`) issued by an OAuth 2.0 Authorization Server.  It can be used to secure access to API managed by AWS API Gateway.
+This project is sample implementation of an AWS Lambda custom authorizer for [AWS API Gateway](https://aws.amazon.com/api-gateway/) that works with a JWT bearer token (`id_token` or `access_token`) issued by an OAuth 2.0 Authorization Server.  It can be used to secure access to APIs managed by [AWS API Gateway](https://aws.amazon.com/api-gateway/).
 
 ## Configuration
 
-### Packages
+### Environment Variables (.env)
 
-Run `npm install` to download all the dependent modules. This is a prerequisite for deployment as AWS Lambda requires these files to be included in the bundle.
-
-### .env
-
-Specifies the required JWT validation parameters for the API Gateway custom authorizer
+Update the `ISSUER` and `AUDIENCE` variables in the `.env` file
 
 ```
 ISSUER=https://example.oktapreview.com/oauth2/aus8o56xh1qncrlwT0h7
 AUDIENCE=https://api.example.com
 ```
 
-You can obtain these values from your Authorization Server configuration
+It is critical that the `issuer` and `audience` claims for JWT bearer tokens are [properly validated using best practices](http://www.cloudidentity.com/blog/2014/03/03/principles-of-token-validation/).  You can obtain these values from your OAuth 2.0 Authorization Server configuration.
 
-### keys.json
+The `audience` value should uniquely identify your AWS API Gateway deployment.  You should assign unique audiences for each API Gateway authorizer instance so that a token intended for one gateway is not valid for another.
 
-Specifies the RSA signature keys in JSON Web Key Set (JWKS) format used to validate tokens from the issuer
+### Signature Keys (keys.json)
 
-You can obtain the JWKS for your token issuer by fetching the `jwks_uri` published in your provider metadata `{{issuer}}/.well-known/openid-configuration`.
+Update `keys.json` with the JSON Web Key Set (JWKS) format for your issuer.   You can usually obtain the JWKS for your issuer by fetching the `jwks_uri` published in your issuer's metadata such as `${issuer}/.well-known/openid-configuration`.
 
-> Please ensure that your issuer uses a pinned key for token signatures (`MANUAL`) and does not automatically rotate signing keys.  The authorizer currently doesn't not support persistence of cached keys (e.g. dynamo).
+> The authorizer only supports RSA signature keys
+
+> Ensure that your issuer uses a pinned key for token signatures and does not automatically rotate signing keys.  The authorizer currently does not support persistence of cached keys (e.g. dynamo) obtained via metadata discovery.
+
+### Scopes
+
+This sample currently enforces scope-based access to API resources using the `scp` claim in the JWT.  The `api:read` scope is required for `GET` requests and `api:write` scope for `POST`, `PUT`, `PATCH`, or `DELETE` requests.
+
+Update `index.js` with your authorization requirements and return the resulting AWS IAM Policy for the request.
 
 # Deployment
 
-### Create bundle
+### Install Dependencies
 
-You can create the bundle using `npm run zip`. This creates a oauth2-jwt-authorizer.zip deployment package with all the source, configuration and node modules AWS Lambda needs.
+Run `npm install` to download all of the authorizer's dependent modules. This is a prerequisite for deployment as AWS Lambda requires these files to be included in the uploaded bundle.
+
+### Create Bundle
+
+You can create the bundle using `npm run zip`. This creates a oauth2-jwt-authorizer.zip deployment package in the `dist` folder with all the source, configuration and node modules AWS Lambda needs.
 
 ### Create Lambda function
 
-From the AWS console https://console.aws.amazon.com/lambda/home#/create?step=2
+From the [AWS Lambda console](https://console.aws.amazon.com/lambda/home#/create?step=2)
 
-* Name : oauth2-jwt-authorizer
-* Description: OAuth2 Bearer JWT authorizer for API Gateway
-* Runtime: Node.js 4.3
-* Code entry type: Upload a .ZIP file
-* Upload : < select lambda-oauth2-jwt-authorizer.zip we created in the previous step >
-* Handler : index.handler
-* Role :  Basic
-* Memory (MB) : 128
-* Timeout : 30 seconds
-* VPC : No VPC
+* **Name:** oauth2-jwt-authorizer
+* **Description:** OAuth2 Bearer JWT authorizer for API Gateway
+* **Runtime:** Node.js 4.3
+* **Code entry type:** Upload a .ZIP file
+* **Upload:** *select `dist\lambda-oauth2-jwt-authorizer.zip` we created in the previous step*
+* **Handler:** index.handler
+* **Role:**  *select an existing role with `lambda:InvokeFunction` action*
 
-Click Next and Create
+  > If you don't have an existing role, you will need to create a new role as outlined below
+
+* **Memory (MB):** 128
+* **Timeout:** 30 seconds
+* **VPC:** No VPC
+
+Click **Next** and **Create**
+
+### Create IAM Role
+
+You will need to create an IAM Role that has permissions to invoke the Lambda function we created above.
+
+That Role will need to have a Policy similar to the following:
+
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Resource": [
+                "*"
+            ],
+            "Action": [
+                "lambda:InvokeFunction"
+            ]
+        }
+    ]
+}
+```
 
 ### Configure API Gateway
 
-From the AWS console https://console.aws.amazon.com/apigateway/home
+From the [AWS API Gateway console](https://console.aws.amazon.com/apigateway/home)
 
 Open your API, or Create a new one.
 
 In the left panel, under your API name, click on **Custom Authorizers**. Click on **Create**
 
-* Name : oauth2-jwt-authorizer
-* Lambda region : < from previous step >
-* Execution role : < the ARN of the Role we created in the previous step >
-* Identity token source : method.request.header.Authorization
-* Token validation expression : ```^Bearer [-0-9a-zA-z\.]*$```
-** Cut-and-paste this regular expression from ^ to $ inclusive
-* Result TTL in seconds : 3600
+* **Name:** oauth2-jwt-authorizer
+* **Lambda region:** *from previous step*
+* **Execution role:** *the ARN of the Role we created in the previous step*
+* **Identity token source:** `method.request.header.Authorization`
+* **Token validation expression:** `^Bearer [-0-9a-zA-z\.]*$`
+
+  > Cut-and-paste this regular expression from ^ to $ inclusive
+
+* **Result TTL in seconds:** 300
 
 Click **Create**
 
 ### Testing
 
-You can test the authorizer by supplying an id_token or access_token and clicking **Test**
+You can test the authorizer by supplying an `id_token` or `access_token` and clicking **Test**
 
     Bearer <token>
 
