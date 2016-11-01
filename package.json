@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "./node_modules/.bin/lambda-local --timeout 300 -l lib/index.js -h handler -e test/event.json",
-    "zip": "rm -f dist/lambda-oauth2-jwt-authorizer.zip ; zip dist/lambda-oauth2-jwt-authorizer.zip -r *.js *.json .env node_modules/"
+    "zip": "mkdir dist && rm -f dist/lambda-oauth2-jwt-authorizer.zip ; zip dist/lambda-oauth2-jwt-authorizer.zip -r *.js *.json .env node_modules/"
   },
   "repository": {
     "type": "git",

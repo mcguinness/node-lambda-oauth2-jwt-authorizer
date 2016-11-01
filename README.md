@@ -32,7 +32,7 @@ You can obtain the JWKS for your token issuer by fetching the `jwks_uri` publish
 
 ### Create bundle
 
-You can create the bundle using `npm zip`. This creates a oauth2-jwt-authorizer.zip deployment package with all the source, configuration and node modules AWS Lambda needs.
+You can create the bundle using `npm run zip`. This creates a oauth2-jwt-authorizer.zip deployment package with all the source, configuration and node modules AWS Lambda needs.
 
 ### Create Lambda function
 
