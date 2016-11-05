@@ -1,10 +1,10 @@
 {
   "name": "lambda-oauth2-jwt-authorizer",
   "version": "0.1.0",
-  "description": "OAuth2 Bearer JSON Web Token (JWT) Custom Authorizer for AWS API Gateway",
+  "description": "RFC 6750 OAuth2 bearer JSON Web Token (JWT) custom authorizer for AWS API Gateway",
   "main": "index.js",
   "scripts": {
-    "test": "./node_modules/.bin/lambda-local --timeout 300 -l lib/index.js -h handler -e test/event.json",
+    "test": "./node_modules/.bin/lambda-local --timeout 300 -l index.js -h handler -e test/event.json",
     "zip": "mkdir dist && rm -f dist/lambda-oauth2-jwt-authorizer.zip ; zip dist/lambda-oauth2-jwt-authorizer.zip -r *.js *.json .env node_modules/"
   },
   "repository": {
@@ -31,7 +31,7 @@
   "homepage": "https://github.com/mcguinness/node-lambda-oauth2-jwt-authorizer.git#readme",
   "dependencies": {
     "dotenv": "^2.0.0",
-    "node-oauth2-bearer-jwt-handler": "https://github.com/mcguinness/node-oauth2-jwt-bearer-token.git"
+    "oauth2-bearer-jwt-handler": "https://github.com/mcguinness/node-oauth2-bearer-jwt-handler.git"
   },
   "devDependencies": {
     "lambda-local": "^1.1.0",

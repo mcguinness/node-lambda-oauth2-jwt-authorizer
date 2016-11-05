@@ -1,6 +1,6 @@
 require('dotenv').config();
 
-const JwtTokenHandler = require('node-oauth2-bearer-jwt-handler').JwtTokenHandler;
+const JwtTokenHandler = require('oauth2-bearer-jwt-handler').JwtTokenHandler;
 const AuthPolicy = require('./auth-policy');
 const fs = require('fs');
 const jwtTokenHandler = new JwtTokenHandler({
