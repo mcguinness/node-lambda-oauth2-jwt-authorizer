@@ -30,7 +30,7 @@ exports.handler = function(event, context) {
     apiOptions.restApiId = apiGatewayArnPart[0];
     apiOptions.stage = apiGatewayArnPart[1];
     const method = apiGatewayArnPart[2];
-    const resource = '/'; // root resource
+    var resource = '/'; // root resource
 
     if (apiGatewayArnPart[3]) {
       resource += apiGatewayArnPart[3];
