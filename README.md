@@ -14,9 +14,10 @@ There are three main components to this setup:
 1. An Okta tenant, with an Authorization Server
 If you do not already have an Okta tenant with an Authorization Server, you can get a free-forever developer tenant from Okta that has all the capabilities you need for this repo [here](https://developer.okta.com).
 
-2. An Amazon API Gateway
+2. Amazon API Gateway
 
 3. An AWS Lambda function (this repo) to perform token validation
+
 (You will also need an IAM role for the Lambda function.)
 
 ## Lambda authorizer quick setup - overview
@@ -50,7 +51,9 @@ On the main function screen:
 Enter the following environment variables on the main function screen:
 
 ISSUER -> from your Okta authorization server
+
 AUDIENCE -> from your Okta authorization server
+
 CLIENT_ID -> a client_id from your Okta tenant
 
 The `audience` value should uniquely identify your AWS API Gateway deployment. You should assign unique audiences for each API Gateway authorizer instance so that a token intended for one gateway is not valid for another.
