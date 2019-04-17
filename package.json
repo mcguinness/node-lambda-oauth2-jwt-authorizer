@@ -30,15 +30,7 @@
   },
   "homepage": "https://github.com/mcguinness/node-lambda-oauth2-jwt-authorizer.git#readme",
   "dependencies": {
-    "dotenv": "^2.0.0",
-    "oauth2-bearer-jwt-handler": "https://github.com/mcguinness/node-oauth2-bearer-jwt-handler.git"
-  },
-  "devDependencies": {
-    "lambda-local": "^1.1.0",
-    "grunt": "^1.0.1",
-    "grunt-aws": "^0.6.1",
-    "grunt-aws-lambda": "^0.13.0",
-    "grunt-env": "^0.4.4",
-    "load-grunt-tasks": "^3.4.0"
+    "@okta/jwt-verifier": "0.0.14",
+    "dotenv": "^7.0.0"
   }
 }

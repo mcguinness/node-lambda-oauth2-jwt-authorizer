@@ -1,70 +1,65 @@
 
 # OAuth 2.0 Bearer JWT Authorizer for AWS API Gateway
 
-This project is sample implementation of an AWS Lambda custom authorizer for [AWS API Gateway](https://aws.amazon.com/api-gateway/) that works with a JWT bearer token (`id_token` or `access_token`) issued by an OAuth 2.0 Authorization Server.  It can be used to secure access to APIs managed by [AWS API Gateway](https://aws.amazon.com/api-gateway/).
+This project is a sample Node.js implementation of an AWS Lambda custom authorizer for [AWS API Gateway](https://aws.amazon.com/api-gateway/) that works with a JWT bearer token (`id_token` or `access_token`) issued by an OAuth 2.0 Authorization Server. It can be used to secure access to APIs managed by [AWS API Gateway](https://aws.amazon.com/api-gateway/).
 
-## Configuration
+It has been designed to work with Okta but should work with any OAuth 2.0 Authorization Server.
 
-### Environment Variables (.env)
+The authorizer uses Okta's [JWT Verifier library](https://github.com/okta/okta-oidc-js/tree/master/packages/jwt-verifier) to retrieve keys (jwks) from your Okta tenant and verify tokens.
 
-Update the `ISSUER` and `AUDIENCE` variables in the `.env` file
+## Prerequisites
 
-```
-ISSUER=https://example.oktapreview.com/oauth2/aus8o56xh1qncrlwT0h7
-AUDIENCE=https://api.example.com
-```
+There are three main components to this setup:
 
-It is critical that the `issuer` and `audience` claims for JWT bearer tokens are [properly validated using best practices](http://www.cloudidentity.com/blog/2014/03/03/principles-of-token-validation/).  You can obtain these values from your OAuth 2.0 Authorization Server configuration.
+1. An Okta tenant, with an Authorization Server
+If you do not already have an Okta tenant with an Authorization Server, you can get a free-forever developer tenant from Okta that has all the capabilities you need for this repo [here](https://developer.okta.com).
 
-The `audience` value should uniquely identify your AWS API Gateway deployment.  You should assign unique audiences for each API Gateway authorizer instance so that a token intended for one gateway is not valid for another.
+2. An Amazon API Gateway
 
-### Signature Keys (keys.json)
+3. An AWS Lambda function (this repo) to perform token validation
+(You will also need an IAM role for the Lambda function.)
 
-Update `keys.json` with the JSON Web Key Set (JWKS) format for your issuer.   You can usually obtain the JWKS for your issuer by fetching the `jwks_uri` published in your issuer's metadata such as `${issuer}/.well-known/openid-configuration`.
+## Lambda authorizer quick setup - overview
 
-> The authorizer only supports RSA signature keys
+The easiest way to get up and running with this authorizer is to create a new Lambda function using the publicly available S3 bucket as your code source, and add your environment variables to the function via the Lambda UI.
 
-> Ensure that your issuer uses a pinned key for token signatures and does not automatically rotate signing keys.  The authorizer currently does not support persistence of cached keys (e.g. dynamo) obtained via metadata discovery.
+This default authorizer enforces scope-based access to API resources using the `scp` claim in the JWT.  The `api:read` scope is required for `GET` requests and `api:write` scope for `POST`, `PUT`, `PATCH`, or `DELETE` requests.
 
-### Scopes
+To customize the authorizer, please see "Customizing the authorizer" below.
 
-This sample currently enforces scope-based access to API resources using the `scp` claim in the JWT.  The `api:read` scope is required for `GET` requests and `api:write` scope for `POST`, `PUT`, `PATCH`, or `DELETE` requests.
-
-Update `index.js` with your authorization requirements and return the resulting AWS IAM Policy for the request.
-
-# Deployment
-
-### Install Dependencies
-
-Run `npm install` to download all of the authorizer's dependent modules. This is a prerequisite for deployment as AWS Lambda requires these files to be included in the uploaded bundle.
-
-### Create Bundle
-
-You can create the bundle using `npm run zip`. This creates a oauth2-jwt-authorizer.zip deployment package in the `dist` folder with all the source, configuration and node modules AWS Lambda needs.
-
-### Create Lambda function
+## Lambda authorizer quick setup - steps
 
 From the [AWS Lambda console](https://console.aws.amazon.com/lambda/home#/create?step=2)
 
-* **Name:** oauth2-jwt-authorizer
-* **Description:** OAuth2 Bearer JWT authorizer for API Gateway
-* **Runtime:** Node.js 4.3
-* **Code entry type:** Upload a .ZIP file
-* **Upload:** *select `dist\lambda-oauth2-jwt-authorizer.zip` we created in the previous step*
+* Author from scratch
+
+* **Function name:** oauth2-jwt-authorizer
+* **Runtime:** Node.js 8.10
+* **Permissions**: choose or create a role with basic Lambda permissions (if you need help creating a role see below)
+
+click Create function
+
+On the main function screen:
+
+* **Code entry type:** Upload a file from Amazon S3
+* **Amazon S3 link URL:** https://s3.us-east-2.amazonaws.com/tom-smith-okta/aws-lambda-authorizer/lambda-oauth2-jwt-authorizer.zip
 * **Handler:** index.handler
-* **Role:**  *select an existing role with `lambda:InvokeFunction` action*
 
-  > If you don't have an existing role, you will need to create a new role as outlined below
+### Environment variables
 
-* **Memory (MB):** 128
-* **Timeout:** 30 seconds
-* **VPC:** No VPC
+Enter the following environment variables on the main function screen:
 
-Click **Next** and **Create**
+ISSUER -> from your Okta authorization server
+AUDIENCE -> from your Okta authorization server
+CLIENT_ID -> a client_id from your Okta tenant
 
-### Create IAM Role
+The `audience` value should uniquely identify your AWS API Gateway deployment. You should assign unique audiences for each API Gateway authorizer instance so that a token intended for one gateway is not valid for another.
 
-You will need to create an IAM Role that has permissions to invoke the Lambda function we created above.
+Click **Save** to create your function.
+
+### Creating an IAM Role for the Lambda function
+
+If you don't already have an IAM role with permissions to create a Lambda function, you will need to create an IAM Role.
 
 That Role will need to have a Policy similar to the following:
 
@@ -85,23 +80,23 @@ That Role will need to have a Policy similar to the following:
 }
 ```
 
-### Configure API Gateway
+## Add the Lambda Authorizer to API Gateway
 
 From the [AWS API Gateway console](https://console.aws.amazon.com/apigateway/home)
 
 Open your API, or Create a new one.
 
-In the left panel, under your API name, click on **Custom Authorizers**. Click on **Create**
+In the left panel, under your API name, click on **Authorizers**. Click on **Create New Authorizer**
 
 * **Name:** oauth2-jwt-authorizer
-* **Lambda region:** *from previous step*
-* **Execution role:** *the ARN of the Role we created in the previous step*
-* **Identity token source:** `method.request.header.Authorization`
+* **Type:** Lambda
+* **Lambda function:** choose your new Lambda function
+* **Lambda Invoke Role:** the ARN of the Role we created in the previous step
+* **Lambda Event Payload:** Token
+* **Token source:** Authorization
 * **Token validation expression:** `^Bearer [-0-9a-zA-z\.]*$`
 
-  > Cut-and-paste this regular expression from ^ to $ inclusive
-
-* **Result TTL in seconds:** 300
+  > Copy-and-paste this regular expression from ^ to $ inclusive
 
 Click **Create**
 
@@ -132,14 +127,16 @@ A successful test will look something like:
         ]
     }
 
-### Configure API Gateway Methods to use the Authorizer
+## Configure API Gateway Methods to use the Authorizer
 
 In the left panel, under your API name, click on **Resources**.
 Under the Resource tree, select one of your Methods (POST, GET etc.)
 
-Select **Method Request**. Under **Authorization Settings** change:
+Select **Method Request**. Under **Settings** change:
 
-* Authorizer : oauth2-jwt-authorizer
+* Authorization: oauth2-jwt-authorizer
+
+Note: if you don't see your new Lambda function in the drop-down, refresh the page.
 
 Make sure that:
 
@@ -151,7 +148,7 @@ Click the tick to save the changes.
 
 You need to Deploy the API to make the changes public.
 
-Select **Action** and **Deploy API**. Select your **Stage**.
+Select **Actions** and **Deploy API**. Select your **Stage**.
 
 ### Test your endpoint remotely
 
@@ -173,3 +170,23 @@ You can use Postman to test the REST API
 #### In (modern) browsers console with fetch
 
     fetch( '<url>', { method: 'POST', headers: { Authorization : 'Bearer <token>' }}).then(response => { console.log( response );});
+
+# Customizing the Authorizer
+
+This sample currently enforces scope-based access to API resources using the `scp` claim in the JWT.  The `api:read` scope is required for `GET` requests and `api:write` scope for `POST`, `PUT`, `PATCH`, or `DELETE` requests.
+
+To add your own scopes and policies, update `index.js` with your authorization requirements.
+
+## Manual Deployment
+
+### Install Dependencies
+
+Run `npm install` to download all of the authorizer's dependent modules. This is a prerequisite for deployment as AWS Lambda requires these files to be included in the uploaded bundle.
+
+### Create Bundle
+
+You can create the bundle using `npm run zip`. This creates a oauth2-jwt-authorizer.zip deployment package in the `dist` folder with all the source, configuration and node modules AWS Lambda needs.
+
+### Create Lambda function
+
+Follow the instructions above to create the Lambda function. You can either upload the new .zip file directly or upload it to an S3 bucket.
