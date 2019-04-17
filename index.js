@@ -1,24 +1,36 @@
+/******************************************************/
+// Okta lambda authorizer for Amazon API Gateway
+
 require('dotenv').config();
 
-const JwtTokenHandler = require('oauth2-bearer-jwt-handler').JwtTokenHandler;
-const AuthPolicy = require('./auth-policy');
-const fs = require('fs');
-const jwtTokenHandler = new JwtTokenHandler({
-  issuer: process.env.ISSUER,
-  audience: process.env.AUDIENCE,
-  jwks: fs.readFileSync('keys.json', 'utf8'),
+const OktaJwtVerifier = require('@okta/jwt-verifier');
+
+/******************************************************/
+
+const oktaJwtVerifier = new OktaJwtVerifier({
+  issuer: process.env.ISSUER, // required
+  clientId: process.env.CLIENT_ID, // required
+  assertClaims: {
+    aud: process.env.AUDIENCE
+  }
 });
 
+const AuthPolicy = require('./auth-policy');
+
+/******************************************************/
+
 exports.handler = function(event, context) {
-  jwtTokenHandler.verifyRequest({
-    headers: {
-      authorization: event.authorizationToken
-    }
-  }, function(err, claims) {
-    if (err) {
-      console.log('Failed to validate bearer token', err);
-      return context.fail('Unauthorized');
-    }
+
+  var arr = event.authorizationToken.split(" ");
+
+  var access_token = arr[1];
+
+  oktaJwtVerifier.verifyAccessToken(access_token)
+  .then(jwt => {
+    // the token is valid (per definition of 'valid' above)
+    console.log(jwt.claims);
+
+    var claims = jwt.claims;
 
     console.log('request principal: ' + claims);
 
@@ -30,32 +42,39 @@ exports.handler = function(event, context) {
     apiOptions.restApiId = apiGatewayArnPart[0];
     apiOptions.stage = apiGatewayArnPart[1];
     const method = apiGatewayArnPart[2];
-    const resource = '/'; // root resource
+    var resource = '/'; // root resource
 
     if (apiGatewayArnPart[3]) {
       resource += apiGatewayArnPart[3];
     }
 
-    const policy = new AuthPolicy(claims.sub, awsAccountId, apiOptions);
-
+    var policy = new AuthPolicy(claims.sub, awsAccountId, apiOptions);
 
     /*
       example scope based authorization
 
       to allow full access:
         policy.allowAllMethods()
-     */
-    if (claims.hasScopes('api:read')) {
+    */
+
+    if (claims.scp.includes('api:read')) {
       policy.allowMethod(AuthPolicy.HttpVerb.GET, "*");
-    } else if (claims.hasScopes('api:write')) {
+    }
+    else if (claims.scp.includes('api:write')) {
       policy.allowMethod(AuthPolicy.HttpVerb.POST, "*");
       policy.allowMethod(AuthPolicy.HttpVerb.PUT, "*");
       policy.allowMethod(AuthPolicy.HttpVerb.PATCH, "*");
       policy.allowMethod(AuthPolicy.HttpVerb.DELETE, "*");
     }
+
     policy.allowMethod(AuthPolicy.HttpVerb.HEAD, "*");
     policy.allowMethod(AuthPolicy.HttpVerb.OPTIONS, "*");
 
     return context.succeed(policy.build());
+  })
+  .catch(err => {
+
+    console.log(err)
+    return context.fail('Unauthorized');
   });
 }

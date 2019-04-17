@@ -2,3 +2,4 @@ node_modules
 dist
 .npmrc
 *.swp
+.DS_Store
